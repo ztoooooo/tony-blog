@@ -1,5 +1,7 @@
 # Tony 的技术笔记
 
+[![Deploy to Cloudflare Workers](https://github.com/ztoooooo/tony-blog/actions/workflows/deploy.yml/badge.svg)](https://github.com/ztoooooo/tony-blog/actions/workflows/deploy.yml)
+
 基于 **Astro + Cloudflare Workers Static Assets** 的纯静态个人博客，采用 Apple 毛玻璃设计语言（半透明玻璃材质、系统字体栈、明暗双主题）。
 
 - 在线地址：<https://blog.uuoooo.com>
