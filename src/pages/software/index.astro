@@ -1,0 +1,286 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SoftwareCard from '../../components/SoftwareCard.astro';
+
+const all = await getCollection('software');
+
+// 过滤掉模板 / 说明文件（带 reference 标记的条目不作为软件展示）
+const entries = all.filter((i) => !i.data.reference);
+
+// 排序：order 权重小的在前，同权重按更新时间倒序
+const items = [...entries].sort((a, b) => {
+	if (a.data.order !== b.data.order) return a.data.order - b.data.order;
+	const at = a.data.updatedDate?.valueOf() ?? 0;
+	const bt = b.data.updatedDate?.valueOf() ?? 0;
+	return bt - at;
+});
+
+// 精选项（order 靠前且标记 featured）单独展示
+const featured = items.filter((i) => i.data.featured);
+const rest = items.filter((i) => !i.data.featured);
+
+// 分类集合，按出现顺序
+const categories = [...new Set(items.map((i) => i.data.category))];
+---
+
+<BaseLayout
+	title="软件库"
+	description="Tony 自制与常用工具的收录 —— 开源小工具、效率脚本与折腾产物，附下载与使用说明。"
+>
+	<section class="list-hero container">
+		<div class="list-hero-panel glass glass-sheen reveal">
+			<span class="chip chip-accent">收录</span>
+			<h1 class="list-title">我的<span class="accent-dot">软件库</span></h1>
+			<p class="list-sub">
+				共 <strong>{items.length}</strong> 款工具 · 覆盖 {categories.length} 个分类 · 全部自用实测
+			</p>
+		</div>
+	</section>
+
+	{
+		categories.length > 1 && (
+			<section class="filter-bar container reveal">
+				<div class="filter-chips" role="group" aria-label="按分类筛选">
+					<button class="filter-chip is-active" type="button" data-filter="all">
+						全部
+						<span class="filter-count">{items.length}</span>
+					</button>
+					{categories.map((c) => {
+						const count = items.filter((i) => i.data.category === c).length;
+						return (
+							<button class="filter-chip" type="button" data-filter={c}>
+								{c}
+								<span class="filter-count">{count}</span>
+							</button>
+						);
+					})}
+				</div>
+			</section>
+		)
+	}
+
+	<section class="section container">
+		{
+			featured.length > 0 && (
+				<div class="featured-wrap">
+					{featured.map((item) => (
+						<div
+							class="reveal"
+							data-cat-group
+							data-category={item.data.category}
+						>
+							<SoftwareCard item={item} featured />
+						</div>
+					))}
+				</div>
+			)
+		}
+
+		{
+			rest.length > 0 && (
+				<div class="sw-grid">
+					{rest.map((item, i) => (
+						<div
+							class="reveal"
+							data-cat-group
+							data-category={item.data.category}
+							style={`transition-delay: ${(i % 3) * 0.08}s`}
+						>
+							<SoftwareCard item={item} />
+						</div>
+					))}
+				</div>
+			)
+		}
+
+		{
+			items.length === 0 && (
+				<div class="empty glass reveal">
+					<p class="empty-title">软件库还是空的</p>
+					<p class="empty-desc">
+						把 Markdown 丢进 <code>src/content/software/</code> 目录，构建后就会出现在这里。
+					</p>
+				</div>
+			)
+		}
+	</section>
+</BaseLayout>
+
+<script>
+	// 分类筛选：纯前端过滤，避免为每个分类生成独立页面
+	const chips = document.querySelectorAll<HTMLButtonElement>('.filter-chip');
+	const groups = document.querySelectorAll<HTMLElement>('[data-cat-group]');
+
+	chips.forEach((chip) => {
+		chip.addEventListener('click', () => {
+			const filter = chip.dataset.filter ?? 'all';
+
+			chips.forEach((c) => c.classList.toggle('is-active', c === chip));
+
+			groups.forEach((group) => {
+				const cat = group.dataset.category;
+				const show = filter === 'all' || cat === filter;
+				group.hidden = !show;
+				if (show) group.classList.add('is-visible');
+			});
+		});
+	});
+</script>
+
+<style>
+	.list-hero {
+		padding-top: var(--space-6);
+		padding-bottom: var(--space-5);
+	}
+
+	.list-hero-panel {
+		padding: clamp(1.8rem, 4vw, 2.8rem);
+		text-align: center;
+		border-radius: var(--radius-xl);
+	}
+
+	.list-hero-panel .chip {
+		margin-bottom: var(--space-4);
+	}
+
+	.list-title {
+		margin: 0 0 0.5rem;
+		font-size: clamp(2rem, 5vw, 3rem);
+		letter-spacing: -0.035em;
+	}
+
+	.list-sub {
+		margin: 0;
+		font-size: 0.95rem;
+		color: var(--text-secondary);
+	}
+	.list-sub strong {
+		color: var(--accent);
+		font-weight: 650;
+	}
+
+	/* ============ 分类筛选 ============ */
+	.filter-bar {
+		margin-bottom: var(--space-6);
+	}
+
+	.filter-chips {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.5rem;
+	}
+
+	.filter-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		flex-shrink: 0;
+		white-space: nowrap;
+		padding: 0.42rem 0.95rem;
+		border-radius: var(--radius-pill);
+		font-family: inherit;
+		font-size: 0.86rem;
+		font-weight: 550;
+		color: var(--text-secondary);
+		background: var(--glass-bg-soft);
+		border: 1px solid var(--glass-border);
+		box-shadow: var(--shadow-sm), var(--shadow-inset);
+		cursor: pointer;
+		transition:
+			color var(--dur-fast) var(--ease-apple),
+			background-color var(--dur-fast) var(--ease-apple),
+			transform var(--dur-fast) var(--ease-out);
+	}
+	.filter-chip:hover {
+		color: var(--text-primary);
+		transform: translateY(-1px);
+	}
+	.filter-chip.is-active {
+		color: #fff;
+		background: linear-gradient(180deg, var(--sys-blue-soft), var(--sys-blue));
+		border-color: transparent;
+		box-shadow: var(--shadow-accent);
+	}
+
+	.filter-count {
+		font-size: 0.72rem;
+		font-variant-numeric: tabular-nums;
+		opacity: 0.7;
+	}
+
+	/* ============ 网格 ============ */
+	.featured-wrap {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: var(--space-5);
+		margin-bottom: var(--space-5);
+	}
+	.featured-wrap > div {
+		display: flex;
+	}
+	.featured-wrap > div > :global(.sw-card) {
+		width: 100%;
+	}
+
+	.sw-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--space-5);
+	}
+	.sw-grid > div {
+		display: flex;
+	}
+	.sw-grid > div > :global(.sw-card) {
+		width: 100%;
+	}
+
+	.empty {
+		padding: var(--space-8) var(--space-5);
+		text-align: center;
+		border-radius: var(--radius-lg);
+	}
+	.empty-title {
+		margin: 0 0 0.4rem;
+		font-weight: 650;
+	}
+	.empty-desc {
+		margin: 0;
+		font-size: 0.9rem;
+		color: var(--text-secondary);
+	}
+
+	@media (max-width: 980px) {
+		.sw-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 720px) {
+		.sw-grid {
+			grid-template-columns: 1fr;
+		}
+		.list-hero-panel {
+			border-radius: var(--radius-lg);
+		}
+		.filter-chips {
+			justify-content: flex-start;
+			overflow-x: auto;
+			flex-wrap: nowrap;
+			padding-bottom: var(--space-2);
+			scrollbar-width: none;
+		}
+		.filter-chips::-webkit-scrollbar {
+			display: none;
+		}
+		/* 窄屏收紧按钮，隐藏计数徽章 */
+		.filter-chip {
+			padding: 0.38rem 0.75rem;
+			font-size: 0.82rem;
+		}
+		.filter-count {
+			display: none;
+		}
+	}
+</style>

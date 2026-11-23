@@ -1,0 +1,17 @@
+{
+  // Cloudflare Workers Static Assets —— 纯静态站点，无需 Worker 入口代码
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tony-blog",
+  "compatibility_date": "2026-11-23",
+  "assets": {
+    // Astro 构建产物目录
+    "directory": "./dist"
+  },
+  // 自定义域：deploy 时自动创建 DNS 记录并签发边缘证书
+  "routes": [
+    {
+      "pattern": "blog.uuoooo.com",
+      "custom_domain": true
+    }
+  ]
+}

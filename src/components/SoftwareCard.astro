@@ -1,0 +1,278 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+	item: CollectionEntry<'software'>;
+	featured?: boolean;
+}
+
+const { item, featured = false } = Astro.props;
+const { title, description, category, platforms, version, icon, logo, accent, tags } = item.data;
+---
+
+<article
+	class:list={['sw-card', 'glass', 'glass-sheen', { featured }]}
+	data-accent={accent}
+	data-category={category}
+>
+	<a class="sw-link" href={`/software/${item.id}/`}>
+		<div class="sw-icon" aria-hidden="true">
+			{
+				logo ? (
+					<Image width={112} height={112} src={logo} alt="" loading="lazy" />
+				) : (
+					<span class="sw-emoji">{icon || '📦'}</span>
+				)
+			}
+		</div>
+
+		<div class="sw-body">
+			<div class="sw-head">
+				<h3 class="sw-title">{title}</h3>
+				{version && <span class="sw-version">v{version}</span>}
+			</div>
+
+			<p class="sw-desc">{description}</p>
+
+			<div class="sw-meta">
+				<span class="chip chip-accent">{category}</span>
+				{platforms.map((p) => <span class="chip">{p}</span>)}
+			</div>
+
+			{
+				tags.length > 0 && (
+					<div class="sw-tags">
+						{tags.map((t) => (
+							<span class="sw-tag">#{t}</span>
+						))}
+					</div>
+				)
+			}
+
+			<span class="sw-more">
+				查看详情
+				<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+					<path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M5 12h13M12 5l7 7-7 7"
+					></path>
+				</svg>
+			</span>
+		</div>
+	</a>
+</article>
+
+<style>
+	.sw-card {
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+	}
+	.sw-card:hover {
+		transform: translateY(-6px);
+		box-shadow: var(--shadow-lg), var(--shadow-inset);
+	}
+
+	/* 每种主题色对应的渐变与应用图标着色 */
+	.sw-card[data-accent='blue'] {
+		--sw-a: #2f9bff;
+		--sw-b: #0071e3;
+	}
+	.sw-card[data-accent='purple'] {
+		--sw-a: #8e8cf0;
+		--sw-b: #5e5ce6;
+	}
+	.sw-card[data-accent='pink'] {
+		--sw-a: #ff6b8b;
+		--sw-b: #ff2d55;
+	}
+	.sw-card[data-accent='teal'] {
+		--sw-a: #5fd4e8;
+		--sw-b: #30b0c7;
+	}
+	.sw-card[data-accent='green'] {
+		--sw-a: #5fd97a;
+		--sw-b: #34c759;
+	}
+	.sw-card[data-accent='orange'] {
+		--sw-a: #ffb44a;
+		--sw-b: #ff9f0a;
+	}
+	.sw-card[data-accent='red'] {
+		--sw-a: #ff7b6b;
+		--sw-b: #ff3b30;
+	}
+
+	.sw-link {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+		height: 100%;
+		padding: var(--space-5);
+		color: inherit;
+		text-decoration: none;
+	}
+
+	/* 卡片整体撑满网格单元，保证同行等高 */
+	.sw-card {
+		display: flex;
+		flex-direction: column;
+	}
+	.sw-card > .sw-link {
+		flex: 1;
+	}
+
+	/* 应用图标：macOS 风格的圆角方形 */
+	.sw-icon {
+		display: grid;
+		place-items: center;
+		width: 60px;
+		height: 60px;
+		flex-shrink: 0;
+		border-radius: 16px;
+		background: linear-gradient(150deg, var(--sw-a) 0%, var(--sw-b) 100%);
+		box-shadow:
+			0 6px 16px color-mix(in srgb, var(--sw-b) 32%, transparent),
+			inset 0 1px 0 rgba(255, 255, 255, 0.4),
+			inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+		transition: transform var(--dur-base) var(--ease-out);
+	}
+	.sw-card:hover .sw-icon {
+		transform: scale(1.06) rotate(-4deg);
+	}
+	.sw-icon img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: inherit;
+	}
+	.sw-emoji {
+		font-size: 1.85rem;
+		line-height: 1;
+		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+	}
+
+	.sw-body {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+	}
+
+	.sw-head {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		flex-wrap: wrap;
+		margin-bottom: 0.45rem;
+	}
+
+	.sw-title {
+		margin: 0;
+		font-size: 1.12rem;
+		line-height: 1.35;
+		color: var(--text-primary);
+		transition: color var(--dur-fast) var(--ease-apple);
+	}
+	.sw-card:hover .sw-title {
+		color: var(--accent);
+	}
+
+	.sw-version {
+		padding: 0.12rem 0.5rem;
+		border-radius: var(--radius-pill);
+		font-size: 0.72rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		color: var(--text-secondary);
+		background: var(--glass-bg-soft);
+		border: 1px solid var(--hairline);
+	}
+
+	.sw-desc {
+		margin: 0 0 var(--space-4);
+		font-size: 0.89rem;
+		line-height: 1.72;
+		color: var(--text-secondary);
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.sw-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-bottom: var(--space-3);
+	}
+
+	.sw-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+		margin-bottom: var(--space-4);
+	}
+	.sw-tag {
+		font-size: 0.76rem;
+		color: var(--text-tertiary);
+		font-family: var(--font-mono);
+	}
+
+	.sw-more {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		margin-top: auto;
+		padding-top: var(--space-3);
+		border-top: 1px solid var(--hairline);
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--accent);
+		transition: gap var(--dur-fast) var(--ease-out);
+	}
+	.sw-card:hover .sw-more {
+		gap: 0.6rem;
+	}
+
+	/* 精选卡片：通栏横向大版式 */
+	.sw-card.featured .sw-link {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: var(--space-6);
+		align-items: start;
+		padding: var(--space-6);
+	}
+	.sw-card.featured .sw-icon {
+		width: 84px;
+		height: 84px;
+		border-radius: 22px;
+	}
+	.sw-card.featured .sw-emoji {
+		font-size: 2.5rem;
+	}
+	.sw-card.featured .sw-title {
+		font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+	}
+	.sw-card.featured .sw-desc {
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+	}
+	.sw-card.featured .sw-more {
+		justify-self: start;
+		padding-top: 0;
+		border-top: none;
+	}
+
+	@media (max-width: 560px) {
+		.sw-card.featured .sw-link {
+			grid-template-columns: 1fr;
+			gap: var(--space-4);
+			padding: var(--space-5);
+		}
+	}
+</style>

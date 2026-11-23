@@ -1,0 +1,172 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	post: CollectionEntry<'blog'>;
+	featured?: boolean;
+}
+
+const { post, featured = false } = Astro.props;
+const { title, description, pubDate, heroImage } = post.data;
+---
+
+<article class:list={['post-card', 'glass', 'glass-sheen', { featured }]}>
+	<a class="card-link" href={`/blog/${post.id}/`}>
+		{heroImage && (
+			<div class="card-cover">
+				<Image width={720} height={360} src={heroImage} alt="" loading="lazy" />
+			</div>
+		)}
+
+		<div class="card-body">
+			<div class="card-meta">
+				<time datetime={pubDate.toISOString()}>
+					<FormattedDate date={pubDate} />
+				</time>
+				<span class="meta-dot" aria-hidden="true">·</span>
+				<span>阅读</span>
+			</div>
+
+			<h3 class="card-title">{title}</h3>
+			<p class="card-desc">{description}</p>
+
+			<span class="card-more">
+				阅读全文
+				<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+					<path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M5 12h13M12 5l7 7-7 7"
+					></path>
+				</svg>
+			</span>
+		</div>
+	</a>
+</article>
+
+<style>
+	.post-card {
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+	}
+	.post-card:hover {
+		transform: translateY(-6px);
+		box-shadow: var(--shadow-lg), var(--shadow-inset);
+	}
+
+	.card-link {
+		display: block;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.card-cover {
+		overflow: hidden;
+		aspect-ratio: 2 / 1;
+		background: var(--glass-bg-soft);
+	}
+	.card-cover img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform var(--dur-slow) var(--ease-out);
+	}
+	.post-card:hover .card-cover img {
+		transform: scale(1.045);
+	}
+
+	.card-body {
+		padding: var(--space-5);
+	}
+
+	.card-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.8rem;
+		color: var(--text-tertiary);
+		margin-bottom: 0.6rem;
+	}
+	.meta-dot {
+		opacity: 0.6;
+	}
+
+	.card-title {
+		margin: 0 0 0.5rem;
+		font-size: 1.2rem;
+		line-height: 1.35;
+		color: var(--text-primary);
+		transition: color var(--dur-fast) var(--ease-apple);
+	}
+	.post-card:hover .card-title {
+		color: var(--accent);
+	}
+
+	.card-desc {
+		margin: 0 0 var(--space-4);
+		font-size: 0.9rem;
+		line-height: 1.7;
+		color: var(--text-secondary);
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.card-more {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.86rem;
+		font-weight: 600;
+		color: var(--accent);
+		transition: gap var(--dur-fast) var(--ease-out);
+	}
+	.post-card:hover .card-more {
+		gap: 0.6rem;
+	}
+
+	/* 特色卡片：横向大图 */
+	.post-card.featured .card-link {
+		display: grid;
+		grid-template-columns: 1.15fr 1fr;
+		align-items: stretch;
+	}
+	.post-card.featured .card-cover {
+		aspect-ratio: auto;
+		height: 100%;
+		min-height: 260px;
+	}
+	.post-card.featured .card-body {
+		padding: var(--space-6);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	.post-card.featured .card-title {
+		font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+	}
+	.post-card.featured .card-desc {
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+	}
+
+	@media (max-width: 760px) {
+		.post-card.featured .card-link {
+			grid-template-columns: 1fr;
+		}
+		.post-card.featured .card-cover {
+			min-height: 0;
+			aspect-ratio: 2 / 1;
+		}
+		.post-card.featured .card-body {
+			padding: var(--space-5);
+		}
+	}
+</style>

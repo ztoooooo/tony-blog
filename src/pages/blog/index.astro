@@ -1,0 +1,138 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+const [featured, ...rest] = posts;
+---
+
+<BaseLayout title="文章" description={SITE_DESCRIPTION}>
+	<section class="list-hero container">
+		<div class="list-hero-panel glass glass-sheen reveal">
+			<span class="chip chip-accent">归档</span>
+			<h1 class="list-title">全部<span class="accent-dot">文章</span></h1>
+			<p class="list-sub">
+				共 <strong>{posts.length}</strong> 篇记录 · 按发布时间倒序排列
+			</p>
+		</div>
+	</section>
+
+	<section class="section container">
+		{
+			featured && (
+				<div class="featured-wrap reveal">
+					<PostCard post={featured} featured />
+				</div>
+			)
+		}
+
+		{
+			rest.length > 0 && (
+				<div class="post-grid">
+					{rest.map((post, i) => (
+						<div class="reveal" style={`transition-delay: ${(i % 3) * 0.08}s`}>
+							<PostCard post={post} />
+						</div>
+					))}
+				</div>
+			)
+		}
+
+		{
+			posts.length === 0 && (
+				<div class="empty glass reveal">
+					<p class="empty-title">还没有文章</p>
+					<p class="empty-desc">
+						把 Markdown 丢进 <code>src/content/blog/</code> 目录，构建后就会出现在这里。
+					</p>
+				</div>
+			)
+		}
+	</section>
+</BaseLayout>
+
+<style>
+	.list-hero {
+		padding-top: var(--space-6);
+		padding-bottom: var(--space-6);
+	}
+
+	.list-hero-panel {
+		padding: clamp(1.8rem, 4vw, 2.8rem);
+		text-align: center;
+		border-radius: var(--radius-xl);
+	}
+
+	.list-hero-panel .chip {
+		margin-bottom: var(--space-4);
+	}
+
+	.list-title {
+		margin: 0 0 0.5rem;
+		font-size: clamp(2rem, 5vw, 3rem);
+		letter-spacing: -0.035em;
+	}
+
+	.list-sub {
+		margin: 0;
+		font-size: 0.95rem;
+		color: var(--text-secondary);
+	}
+	.list-sub strong {
+		color: var(--accent);
+		font-weight: 650;
+	}
+
+	.featured-wrap {
+		margin-bottom: var(--space-5);
+	}
+	.featured-wrap > :global(.post-card) {
+		width: 100%;
+	}
+
+	.post-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--space-5);
+	}
+	.post-grid > div {
+		display: flex;
+	}
+	.post-grid > div > :global(.post-card) {
+		width: 100%;
+	}
+
+	.empty {
+		padding: var(--space-8) var(--space-5);
+		text-align: center;
+		border-radius: var(--radius-lg);
+	}
+	.empty-title {
+		margin: 0 0 0.4rem;
+		font-weight: 650;
+	}
+	.empty-desc {
+		margin: 0;
+		font-size: 0.9rem;
+		color: var(--text-secondary);
+	}
+
+	@media (max-width: 980px) {
+		.post-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 720px) {
+		.post-grid {
+			grid-template-columns: 1fr;
+		}
+		.list-hero-panel {
+			border-radius: var(--radius-lg);
+		}
+	}
+</style>

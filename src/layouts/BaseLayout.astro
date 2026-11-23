@@ -1,0 +1,159 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import BaseHead from '../components/BaseHead.astro';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+	title: string;
+	description: string;
+	image?: ImageMetadata;
+}
+
+const { title, description, image } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={title} description={description} image={image} />
+
+		{/*
+			主题初始化：在首次绘制前同步确定明暗模式，避免刷新时的闪白。
+			优先级：用户手动选择 > 系统偏好 > 浅色。
+		*/}
+		<script is:inline>
+			(function () {
+				try {
+					var stored = localStorage.getItem('theme');
+					var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+					document.documentElement.setAttribute(
+						'data-theme',
+						stored || (prefersDark ? 'dark' : 'light')
+					);
+				} catch (e) {
+					document.documentElement.setAttribute('data-theme', 'light');
+				}
+			})();
+		</script>
+	</head>
+
+	<body>
+		<a class="skip-link" href="#main-content">跳到主要内容</a>
+
+		<Header />
+
+		<main id="main-content">
+			<slot />
+		</main>
+
+		<Footer />
+
+		<!-- 返回顶部 -->
+		<button id="back-to-top" class="back-to-top" type="button" aria-label="返回顶部" title="返回顶部">
+			<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+				<path
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M12 19V5M5 12l7-7 7 7"
+				></path>
+			</svg>
+		</button>
+
+		<script>
+			// 滚动入场动画
+			const revealItems = document.querySelectorAll('.reveal');
+			const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			if (reduceMotion || !('IntersectionObserver' in window)) {
+				revealItems.forEach((el) => el.classList.add('is-visible'));
+			} else {
+				const observer = new IntersectionObserver(
+					(entries) => {
+						entries.forEach((entry) => {
+							if (entry.isIntersecting) {
+								entry.target.classList.add('is-visible');
+								observer.unobserve(entry.target);
+							}
+						});
+					},
+					{ threshold: 0.1, rootMargin: '0px 0px -6% 0px' }
+				);
+				revealItems.forEach((el) => observer.observe(el));
+			}
+
+			// 返回顶部按钮
+			const backToTop = document.getElementById('back-to-top');
+			if (backToTop) {
+				const toggle = () => {
+					backToTop.classList.toggle('is-visible', window.scrollY > 600);
+				};
+				window.addEventListener('scroll', toggle, { passive: true });
+				toggle();
+				backToTop.addEventListener('click', () => {
+					window.scrollTo({ top: 0, behavior: 'smooth' });
+				});
+			}
+		</script>
+	</body>
+</html>
+
+<style>
+	.skip-link {
+		position: absolute;
+		top: -100px;
+		left: var(--space-4);
+		z-index: 100;
+		padding: 0.7rem 1.2rem;
+		border-radius: var(--radius-pill);
+		background: var(--bg-elevated);
+		color: var(--text-primary);
+		box-shadow: var(--shadow-md);
+		transition: top var(--dur-fast) var(--ease-apple);
+	}
+	.skip-link:focus {
+		top: var(--space-4);
+	}
+
+	.back-to-top {
+		position: fixed;
+		right: max(var(--space-5), env(safe-area-inset-right));
+		bottom: max(var(--space-5), env(safe-area-inset-bottom));
+		z-index: 50;
+		display: grid;
+		place-items: center;
+		width: 46px;
+		height: 46px;
+		padding: 0;
+		cursor: pointer;
+		color: var(--text-primary);
+		background: var(--glass-bg-strong);
+		backdrop-filter: blur(24px) saturate(180%);
+		-webkit-backdrop-filter: blur(24px) saturate(180%);
+		border: 1px solid var(--glass-border);
+		border-radius: 50%;
+		box-shadow: var(--shadow-md), var(--shadow-inset);
+		opacity: 0;
+		transform: translateY(12px) scale(0.9);
+		pointer-events: none;
+		transition:
+			opacity var(--dur-base) var(--ease-out),
+			transform var(--dur-base) var(--ease-out),
+			background-color var(--dur-fast) var(--ease-apple);
+	}
+	.back-to-top.is-visible {
+		opacity: 1;
+		transform: none;
+		pointer-events: auto;
+	}
+	.back-to-top:hover {
+		transform: translateY(-3px);
+		box-shadow: var(--shadow-lg), var(--shadow-inset);
+	}
+	.back-to-top:active {
+		transform: scale(0.92);
+	}
+</style>

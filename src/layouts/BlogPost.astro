@@ -1,0 +1,135 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+
+type Props = CollectionEntry<'blog'>['data'];
+
+const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} image={heroImage}>
+	<article class="article container">
+		{
+			heroImage && (
+				<div class="cover glass glass-sheen reveal">
+					<Image width={1020} height={510} src={heroImage} alt="" />
+				</div>
+			)
+		}
+
+		<header class="article-head reveal">
+			<div class="article-meta">
+				<span class="chip chip-accent">
+					<FormattedDate date={pubDate} />
+				</span>
+				{
+					updatedDate && (
+						<span class="chip">更新于 <FormattedDate date={updatedDate} /></span>
+					)
+				}
+			</div>
+
+			<h1 class="article-title">{title}</h1>
+			<p class="article-desc">{description}</p>
+		</header>
+
+		<div class="prose glass glass-sheen reveal">
+			<slot />
+		</div>
+
+		<footer class="article-foot reveal">
+			<a class="btn btn-ghost" href="/blog">
+				<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+					<path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M19 12H6M12 5l-7 7 7 7"
+					></path>
+				</svg>
+				返回文章列表
+			</a>
+			<a class="btn btn-primary" href="/rss.xml">订阅更新</a>
+		</footer>
+	</article>
+</BaseLayout>
+
+<style>
+	/*
+	 * 宽度统一交给 .container（与首页 / 列表 / 页脚同一标准）：
+	 * 主体内容区 1052px，比顶部栏 1100px 两侧各内缩 24px。
+	 * .article 只负责垂直留白，不再单独设置水平宽度。
+	 */
+	.article {
+		padding-top: var(--space-5);
+		padding-bottom: var(--space-6);
+	}
+
+	/* 封面铺满主体内容区 */
+	.cover {
+		overflow: hidden;
+		width: 100%;
+		margin-bottom: var(--space-6);
+		padding: 0;
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-md);
+	}
+	.cover img {
+		width: 100%;
+		height: auto;
+		display: block;
+	}
+
+	.article-head {
+		margin-bottom: var(--space-5);
+		text-align: center;
+	}
+	/* 标题区文字收窄，避免长标题 / 描述被拉得过宽 */
+	.article-head > * {
+		max-width: var(--width-reading);
+		margin-inline: auto;
+	}
+
+	.article-meta {
+		display: flex;
+		justify-content: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		margin-bottom: var(--space-4);
+	}
+
+	.article-title {
+		margin: 0 0 var(--space-3);
+		font-size: clamp(1.9rem, 4.6vw, 2.85rem);
+		letter-spacing: -0.035em;
+		line-height: 1.18;
+	}
+
+	.article-desc {
+		margin: 0;
+		font-size: 1.02rem;
+		line-height: 1.8;
+		color: var(--text-secondary);
+	}
+
+	.prose {
+		padding: clamp(1.5rem, 4vw, 2.8rem);
+		border-radius: var(--radius-lg);
+		color: var(--text-primary);
+	}
+	/* 正文文字列宽（--width-reading）与代码块铺满的规则在 global.css，
+	   因 Astro scoped CSS 匹配不到 <slot /> 注入的 Markdown 内容。 */
+
+	.article-foot {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--space-4);
+		flex-wrap: wrap;
+		margin-top: var(--space-6);
+	}
+</style>

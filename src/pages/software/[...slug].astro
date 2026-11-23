@@ -1,0 +1,303 @@
+---
+import { type CollectionEntry, getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+	const items = await getCollection('software');
+	// 过滤掉模板 / 说明文件（带 reference 标记的条目不生成页面）
+	return items
+		.filter((item) => !item.data.reference)
+		.map((item) => ({
+			params: { slug: item.id },
+			props: item,
+		}));
+}
+
+type Props = CollectionEntry<'software'>;
+
+const item = Astro.props;
+const { Content } = await render(item);
+const { title, description, category, platforms, version, icon, logo, accent, homepage, download, tags, updatedDate } =
+	item.data;
+---
+
+<BaseLayout title={title} description={description}>
+	<article class="sw-detail container" data-accent={accent}>
+		<header class="sw-head glass glass-sheen reveal">
+			<div class="sw-icon" aria-hidden="true">
+				{
+					logo ? (
+						<img src={logo.src} width={160} height={160} alt="" />
+					) : (
+						<span class="sw-emoji">{icon || '📦'}</span>
+					)
+				}
+			</div>
+
+			<div class="sw-intro">
+				<div class="sw-badges">
+					<span class="chip chip-accent">{category}</span>
+					{version && <span class="chip">v{version}</span>}
+					{
+						updatedDate && (
+							<span class="chip">
+								更新于{' '}
+								{updatedDate.toLocaleDateString('zh-CN', {
+									year: 'numeric',
+									month: 'long',
+									day: 'numeric',
+								})}
+							</span>
+						)
+					}
+				</div>
+
+				<h1 class="sw-title">{title}</h1>
+				<p class="sw-desc">{description}</p>
+
+				{platforms.length > 0 && (
+					<div class="sw-platforms">
+						<span class="sw-platforms-label">支持平台</span>
+						{platforms.map((p) => (
+							<span class="chip">{p}</span>
+						))}
+					</div>
+				)}
+
+				{(homepage || download) && (
+					<div class="sw-actions">
+						{
+							download && (
+								<a class="btn btn-primary" href={download} target="_blank" rel="noopener">
+									<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+										<path
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
+										></path>
+									</svg>
+									下载
+								</a>
+							)
+						}
+						{
+							homepage && (
+								<a class="btn btn-ghost" href={homepage} target="_blank" rel="noopener">
+									<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+										<path
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											d="M14 4h6v6m0-6L10 14M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"
+										></path>
+									</svg>
+									项目主页
+								</a>
+							)
+						}
+					</div>
+				)}
+
+				{tags.length > 0 && (
+					<div class="sw-tags">
+						{tags.map((t) => (
+							<span class="sw-tag">#{t}</span>
+						))}
+					</div>
+				)}
+			</div>
+		</header>
+
+		<div class="prose glass glass-sheen reveal">
+			<Content />
+		</div>
+
+		<footer class="sw-foot reveal">
+			<a class="btn btn-ghost" href="/software">
+				<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+					<path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M19 12H6M12 5l-7 7 7 7"
+					></path>
+				</svg>
+				返回软件库
+			</a>
+		</footer>
+	</article>
+</BaseLayout>
+
+<style>
+	.sw-detail {
+		padding-top: var(--space-5);
+		padding-bottom: var(--space-6);
+	}
+
+	.sw-detail[data-accent='blue'] {
+		--sw-a: #2f9bff;
+		--sw-b: #0071e3;
+	}
+	.sw-detail[data-accent='purple'] {
+		--sw-a: #8e8cf0;
+		--sw-b: #5e5ce6;
+	}
+	.sw-detail[data-accent='pink'] {
+		--sw-a: #ff6b8b;
+		--sw-b: #ff2d55;
+	}
+	.sw-detail[data-accent='teal'] {
+		--sw-a: #5fd4e8;
+		--sw-b: #30b0c7;
+	}
+	.sw-detail[data-accent='green'] {
+		--sw-a: #5fd97a;
+		--sw-b: #34c759;
+	}
+	.sw-detail[data-accent='orange'] {
+		--sw-a: #ffb44a;
+		--sw-b: #ff9f0a;
+	}
+	.sw-detail[data-accent='red'] {
+		--sw-a: #ff7b6b;
+		--sw-b: #ff3b30;
+	}
+
+	.sw-head {
+		display: flex;
+		gap: var(--space-6);
+		align-items: flex-start;
+		width: 100%;
+		margin-bottom: var(--space-5);
+		padding: clamp(1.5rem, 4vw, 2.4rem);
+		border-radius: var(--radius-xl);
+	}
+
+	.sw-icon {
+		display: grid;
+		place-items: center;
+		width: 92px;
+		height: 92px;
+		flex-shrink: 0;
+		border-radius: 24px;
+		background: linear-gradient(150deg, var(--sw-a) 0%, var(--sw-b) 100%);
+		box-shadow:
+			0 10px 28px color-mix(in srgb, var(--sw-b) 34%, transparent),
+			inset 0 1px 0 rgba(255, 255, 255, 0.4),
+			inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+	}
+	.sw-icon img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: inherit;
+	}
+	.sw-emoji {
+		font-size: 2.7rem;
+		line-height: 1;
+		filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.25));
+	}
+
+	.sw-intro {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.sw-badges {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+		margin-bottom: var(--space-4);
+	}
+
+	.sw-title {
+		margin: 0 0 var(--space-3);
+		font-size: clamp(1.8rem, 4.4vw, 2.6rem);
+		letter-spacing: -0.035em;
+		line-height: 1.18;
+	}
+
+	.sw-desc {
+		margin: 0 0 var(--space-4);
+		max-width: var(--width-reading);
+		font-size: 1rem;
+		line-height: 1.8;
+		color: var(--text-secondary);
+	}
+
+	.sw-platforms {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-bottom: var(--space-5);
+	}
+	.sw-platforms-label {
+		font-size: 0.78rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--text-tertiary);
+		margin-right: 0.2rem;
+	}
+
+	.sw-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+		margin-bottom: var(--space-4);
+	}
+
+	.sw-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		padding-top: var(--space-4);
+		border-top: 1px solid var(--hairline);
+	}
+	.sw-tag {
+		font-size: 0.78rem;
+		font-family: var(--font-mono);
+		color: var(--text-tertiary);
+	}
+
+	.prose {
+		/* 铺满主体内容区（.container），文字列宽由 global.css 的 .prose > * 收窄 */
+		width: 100%;
+		padding: clamp(1.5rem, 4vw, 2.8rem);
+		border-radius: var(--radius-lg);
+		color: var(--text-primary);
+	}
+
+	.sw-foot {
+		display: flex;
+		justify-content: center;
+		margin-top: var(--space-6);
+	}
+
+	@media (max-width: 640px) {
+		.sw-head {
+			flex-direction: column;
+			gap: var(--space-4);
+			padding: var(--space-5);
+			border-radius: var(--radius-lg);
+		}
+		.sw-icon {
+			width: 72px;
+			height: 72px;
+			border-radius: 20px;
+		}
+		.sw-emoji {
+			font-size: 2.1rem;
+		}
+		.sw-actions .btn {
+			flex: 1 1 auto;
+		}
+	}
+</style>

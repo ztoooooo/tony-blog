@@ -1,0 +1,546 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { HERO_SUBTITLE, HERO_TITLE, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+const latest = posts.slice(0, 3);
+
+// 首页软件库速览：取前 4 个，按 order 权重（过滤掉模板 / 说明文件）
+const softwares = (await getCollection('software'))
+	.filter((s) => !s.data.reference)
+	.sort((a, b) => a.data.order - b.data.order)
+	.slice(0, 4);
+
+const features = [
+	{
+		title: '边缘极速',
+		desc: '全站托管在 Cloudflare Workers 静态资源上，全球节点就近分发，静态请求零成本。',
+		icon: 'M13 2 3 14h7l-1 8 10-12h-7l1-8Z',
+		color: 'var(--sys-blue)',
+	},
+	{
+		title: '极简阅读',
+		desc: '零追踪、零广告、零 Cookie。正文排版以 SF Pro 为基准，行宽与行高都按长时间阅读调过。',
+		icon: 'M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5V5.5ZM4 20.5A2.5 2.5 0 0 1 6.5 18H19v3H6.5A2.5 2.5 0 0 1 4 20.5Z',
+		color: 'var(--sys-purple)',
+	},
+	{
+		title: '原生手感',
+		desc: '明暗双主题跟随系统偏好，玻璃材质与毛玻璃模糊，动效遵循 Apple 的缓动曲线。',
+		icon: 'M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z',
+		color: 'var(--sys-teal)',
+	},
+	{
+		title: '始终可读',
+		desc: '正文 17px 字号、1.75 行高，发丝级分隔线与柔和层次，弱光环境下也不刺眼。',
+		icon: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
+		color: 'var(--sys-green)',
+	},
+];
+---
+
+<BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
+	<!-- ================= HERO ================= -->
+	<section class="hero container">
+		<div class="hero-panel glass glass-sheen reveal">
+			<span class="chip chip-accent hero-badge">
+				<span class="pulse-dot" aria-hidden="true"></span>
+				Apple Glass Theme · 已上线
+			</span>
+
+			<h1 class="hero-title">
+				<span class="gradient-text">{HERO_TITLE}</span>
+			</h1>
+
+			<p class="hero-subtitle">{HERO_SUBTITLE}</p>
+
+			<div class="hero-actions">
+				<a class="btn btn-primary" href="/blog">
+					浏览全部文章
+					<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+						<path
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M5 12h13M12 5l7 7-7 7"
+						></path>
+					</svg>
+				</a>
+				<a class="btn btn-ghost" href="/about">关于我</a>
+			</div>
+
+			<dl class="hero-stats">
+				<div class="stat">
+					<dt>已发布</dt>
+					<dd>{posts.length}<span>篇</span></dd>
+				</div>
+				<div class="stat">
+					<dt>主题</dt>
+					<dd>4<span>类</span></dd>
+				</div>
+				<div class="stat">
+					<dt>部署</dt>
+					<dd>Edge<span>全球</span></dd>
+				</div>
+				<div class="stat">
+					<dt>加载</dt>
+					<dd>&lt;1<span>s</span></dd>
+				</div>
+			</dl>
+		</div>
+	</section>
+
+	<!-- ================= 最新文章 ================= -->
+	<section class="section container">
+		<div class="section-head reveal">
+			<div>
+				<h2 class="section-title">最新<span class="accent-dot">文章</span></h2>
+				<p class="section-sub">最近写下的东西</p>
+			</div>
+			<a class="see-all" href="/blog">
+				查看全部
+				<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+					<path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M5 12h13M12 5l7 7-7 7"
+					></path>
+				</svg>
+			</a>
+		</div>
+
+		<div class="post-grid">
+			{
+				latest.map((post, i) => (
+					<div class="reveal" style={`transition-delay: ${i * 0.08}s`}>
+						<PostCard post={post} />
+					</div>
+				))
+			}
+		</div>
+	</section>
+
+	<!-- ================= 软件库 ================= -->
+	<section class="section container">
+		<div class="section-head reveal">
+			<div>
+				<h2 class="section-title">我的<span class="accent-dot">软件库</span></h2>
+				<p class="section-sub">自研小工具与常用软件，全部自用实测</p>
+			</div>
+			<a class="see-all" href="/software">
+				进入软件库
+				<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+					<path
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M5 12h13M12 5l7 7-7 7"
+					></path>
+				</svg>
+			</a>
+		</div>
+
+		<div class="sw-strip reveal">
+			{
+				softwares.map((s) => (
+					<a class="sw-mini glass glass-sheen" href={`/software/${s.id}/`}>
+						<span class="sw-mini-icon" data-accent={s.data.accent} aria-hidden="true">
+							{s.data.icon || '📦'}
+						</span>
+						<span class="sw-mini-text">
+							<span class="sw-mini-title">{s.data.title}</span>
+							<span class="sw-mini-desc">{s.data.description}</span>
+						</span>
+					</a>
+				))
+			}
+		</div>
+	</section>
+
+	<!-- ================= 设计特性 ================= -->
+	<section class="section container">
+		<div class="section-head reveal">
+			<div>
+				<h2 class="section-title">为什么是<span class="accent-dot">这个博客</span></h2>
+				<p class="section-sub">四个坚持了许久的小原则</p>
+			</div>
+		</div>
+
+		<div class="feature-grid">
+			{
+				features.map((f, i) => (
+					<div class="feature-card glass glass-sheen reveal" style={`transition-delay: ${i * 0.07}s`}>
+						<div class="feature-icon" style={`--icon-color: ${f.color}`}>
+							<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+								<path fill="currentColor" d={f.icon} />
+							</svg>
+						</div>
+						<h3 class="feature-title">{f.title}</h3>
+						<p class="feature-desc">{f.desc}</p>
+					</div>
+				))
+			}
+		</div>
+	</section>
+
+	<!-- ================= 订阅 CTA ================= -->
+	<section class="section container">
+		<div class="cta-panel glass glass-sheen reveal">
+			<div class="cta-text">
+				<h2 class="cta-title">不错过每一次更新</h2>
+				<p class="cta-desc">
+					通过 RSS 订阅，新文章发布即刻送达你的阅读器。没有算法、没有推送轰炸。
+				</p>
+			</div>
+			<a class="btn btn-primary" href="/rss.xml">
+				<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+					<path
+						fill="currentColor"
+						d="M2.5 10.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm-.9-4.2c-.4 0-.7.3-.7.7v2c0 .4.3.7.7.7 2.9 0 5.3 2.4 5.3 5.3 0 .4.3.7.7.7h2c.4 0 .7-.3.7-.7 0-4.8-3.9-8.7-8.7-8.7zm0-4.3c-.4 0-.7.3-.7.7v2.1c0 .4.3.7.7.7 5.3 0 9.6 4.3 9.6 9.6 0 .4-.3.7-.7.7h-2.1c-.4 0-.7-.3-.7-.7C8.9 8.8 2.6 2 1.6 2z"
+					></path>
+				</svg>
+				订阅 RSS
+			</a>
+		</div>
+	</section>
+</BaseLayout>
+
+<style>
+	/* ============ HERO ============ */
+	.hero {
+		padding-top: var(--space-6);
+		padding-bottom: var(--space-8);
+	}
+
+	.hero-panel {
+		padding: clamp(2rem, 5vw, 3.6rem) clamp(1.5rem, 4vw, 3rem);
+		text-align: center;
+		border-radius: var(--radius-xl);
+	}
+
+	.hero-badge {
+		margin-bottom: var(--space-5);
+	}
+
+	.pulse-dot {
+		position: relative;
+		display: inline-block;
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--sys-green);
+	}
+	.pulse-dot::after {
+		content: '';
+		position: absolute;
+		inset: -4px;
+		border-radius: 50%;
+		border: 1.5px solid var(--sys-green);
+		opacity: 0.5;
+		animation: pulse 2.2s var(--ease-out) infinite;
+	}
+	@keyframes pulse {
+		0% {
+			transform: scale(0.6);
+			opacity: 0.7;
+		}
+		100% {
+			transform: scale(1.5);
+			opacity: 0;
+		}
+	}
+
+	.hero-title {
+		margin: 0 0 var(--space-4);
+		font-size: clamp(2.5rem, 7vw, 4.4rem);
+		font-weight: 800;
+		letter-spacing: -0.04em;
+		line-height: 1.08;
+	}
+
+	.hero-subtitle {
+		max-width: 620px;
+		margin: 0 auto var(--space-6);
+		font-size: clamp(1rem, 1.6vw, 1.12rem);
+		line-height: 1.85;
+		color: var(--text-secondary);
+	}
+
+	.hero-actions {
+		display: flex;
+		justify-content: center;
+		gap: var(--space-3);
+		flex-wrap: wrap;
+		margin-bottom: var(--space-7);
+	}
+
+	.hero-stats {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: var(--space-4);
+		max-width: 640px;
+		margin: 0 auto;
+		padding-top: var(--space-6);
+		border-top: 1px solid var(--hairline);
+	}
+
+	.stat {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+	.stat dt {
+		font-size: 0.76rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--text-tertiary);
+	}
+	.stat dd {
+		margin: 0;
+		font-size: 1.75rem;
+		font-weight: 700;
+		letter-spacing: -0.03em;
+		color: var(--text-primary);
+	}
+	.stat dd span {
+		font-size: 0.9rem;
+		font-weight: 500;
+		margin-left: 0.15rem;
+		color: var(--text-tertiary);
+	}
+
+	/* ============ 文章网格 ============ */
+	.see-all {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: var(--accent);
+	}
+	.see-all svg {
+		transition: transform var(--dur-fast) var(--ease-out);
+	}
+	.see-all:hover svg {
+		transform: translateX(3px);
+	}
+
+	.post-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--space-5);
+	}
+	.post-grid > div {
+		display: flex;
+	}
+	.post-grid > div > :global(.post-card) {
+		width: 100%;
+	}
+
+	/* ============ 特性卡片 ============ */
+	.feature-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: var(--space-4);
+	}
+
+	.feature-card {
+		padding: var(--space-5);
+		border-radius: var(--radius-lg);
+	}
+	.feature-card:hover {
+		transform: translateY(-5px);
+		box-shadow: var(--shadow-lg), var(--shadow-inset);
+	}
+
+	.feature-icon {
+		display: grid;
+		place-items: center;
+		width: 44px;
+		height: 44px;
+		margin-bottom: var(--space-4);
+		border-radius: 13px;
+		color: var(--icon-color);
+		background: color-mix(in srgb, var(--icon-color) 14%, transparent);
+		border: 1px solid color-mix(in srgb, var(--icon-color) 24%, transparent);
+		transition: transform var(--dur-base) var(--ease-out);
+	}
+	.feature-card:hover .feature-icon {
+		transform: scale(1.1) rotate(-6deg);
+	}
+
+	.feature-title {
+		margin: 0 0 0.4rem;
+		font-size: 1.02rem;
+		letter-spacing: -0.01em;
+	}
+	.feature-desc {
+		margin: 0;
+		font-size: 0.86rem;
+		line-height: 1.72;
+		color: var(--text-secondary);
+	}
+
+	/* ============ 软件库速览 ============ */
+	.sw-strip {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: var(--space-4);
+	}
+
+	.sw-mini {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+		padding: var(--space-4);
+		border-radius: var(--radius-lg);
+		color: inherit;
+		text-decoration: none;
+		transition:
+			transform var(--dur-base) var(--ease-out),
+			box-shadow var(--dur-base) var(--ease-out);
+	}
+	.sw-mini:hover {
+		transform: translateY(-5px);
+		box-shadow: var(--shadow-lg), var(--shadow-inset);
+	}
+
+	.sw-mini-icon {
+		display: grid;
+		place-items: center;
+		width: 44px;
+		height: 44px;
+		flex-shrink: 0;
+		border-radius: 13px;
+		font-size: 1.35rem;
+		line-height: 1;
+		background: linear-gradient(150deg, var(--sw-a, #2f9bff) 0%, var(--sw-b, #0071e3) 100%);
+		box-shadow:
+			0 4px 12px color-mix(in srgb, var(--sw-b, #0071e3) 30%, transparent),
+			inset 0 1px 0 rgba(255, 255, 255, 0.35);
+	}
+	.sw-mini-icon[data-accent='purple'] {
+		--sw-a: #8e8cf0;
+		--sw-b: #5e5ce6;
+	}
+	.sw-mini-icon[data-accent='pink'] {
+		--sw-a: #ff6b8b;
+		--sw-b: #ff2d55;
+	}
+	.sw-mini-icon[data-accent='teal'] {
+		--sw-a: #5fd4e8;
+		--sw-b: #30b0c7;
+	}
+	.sw-mini-icon[data-accent='green'] {
+		--sw-a: #5fd97a;
+		--sw-b: #34c759;
+	}
+	.sw-mini-icon[data-accent='orange'] {
+		--sw-a: #ffb44a;
+		--sw-b: #ff9f0a;
+	}
+	.sw-mini-icon[data-accent='red'] {
+		--sw-a: #ff7b6b;
+		--sw-b: #ff3b30;
+	}
+
+	.sw-mini-text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		min-width: 0;
+	}
+	.sw-mini-title {
+		font-size: 0.95rem;
+		font-weight: 620;
+		color: var(--text-primary);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.sw-mini-desc {
+		font-size: 0.78rem;
+		color: var(--text-tertiary);
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	/* ============ 订阅 CTA ============ */
+	.cta-panel {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-6);
+		flex-wrap: wrap;
+		padding: clamp(1.8rem, 4vw, 2.6rem);
+		border-radius: var(--radius-xl);
+	}
+
+	.cta-text {
+		flex: 1 1 320px;
+	}
+	.cta-title {
+		margin: 0 0 0.4rem;
+		font-size: clamp(1.3rem, 2.4vw, 1.65rem);
+	}
+	.cta-desc {
+		margin: 0;
+		font-size: 0.95rem;
+		color: var(--text-secondary);
+		max-width: 520px;
+	}
+
+	/* ============ 响应式 ============ */
+	@media (max-width: 980px) {
+		.post-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		.feature-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		.sw-strip {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 720px) {
+		.hero {
+			padding-top: var(--space-4);
+			padding-bottom: var(--space-6);
+		}
+		.hero-panel {
+			border-radius: var(--radius-lg);
+		}
+		.hero-stats {
+			grid-template-columns: repeat(2, 1fr);
+			gap: var(--space-5) var(--space-4);
+		}
+		.stat dd {
+			font-size: 1.5rem;
+		}
+		.post-grid,
+		.feature-grid,
+		.sw-strip {
+			grid-template-columns: 1fr;
+		}
+		.cta-panel {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: var(--space-4);
+		}
+	}
+</style>

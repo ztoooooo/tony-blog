@@ -1,0 +1,764 @@
+/* ==========================================================================
+   Tony 的技术笔记 — Apple Glass Design System
+   设计语言参考 Apple Human Interface Guidelines
+   核心：SF 字体栈 / 系统色 / 毛玻璃材质 / 连续圆角 / 微妙动效
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. 设计令牌（Design Tokens）
+   --------------------------------------------------------------------- */
+:root {
+	/* 苹果系统色 */
+	--sys-blue: #0071e3;
+	--sys-blue-soft: #2f9bff;
+	--sys-purple: #5e5ce6;
+	--sys-indigo: #5e5ce6;
+	--sys-pink: #ff2d55;
+	--sys-teal: #30b0c7;
+	--sys-green: #34c759;
+	--sys-orange: #ff9f0a;
+	--sys-red: #ff3b30;
+
+	/* 字体：优先使用系统字体以还原 SF Pro 观感 */
+	--font-sans:
+		-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue',
+		'Segoe UI Variable Display', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+		'Microsoft YaHei UI', 'Microsoft YaHei', 'Noto Sans CJK SC', system-ui, sans-serif;
+	--font-mono:
+		'SF Mono', 'JetBrains Mono', 'Cascadia Code', ui-monospace, Menlo, Consolas,
+		'Microsoft YaHei Mono', monospace;
+
+	/* 圆角：苹果连续圆角观感 */
+	--radius-xs: 8px;
+	--radius-sm: 12px;
+	--radius-md: 16px;
+	--radius-lg: 22px;
+	--radius-xl: 28px;
+	--radius-pill: 999px;
+
+	/* 间距尺度 */
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.5rem;
+	--space-6: 2rem;
+	--space-7: 3rem;
+	--space-8: 4.5rem;
+	--space-9: 6rem;
+
+	/* 容器宽度 */
+	--width-content: 1100px;
+	--width-prose: 720px;
+	/* 正文文字列宽：整宽卡片内的舒适行长（约 736px） */
+	--width-reading: 46rem;
+
+	/* 过渡 */
+	--ease-apple: cubic-bezier(0.32, 0.72, 0, 1);
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--dur-fast: 0.2s;
+	--dur-base: 0.4s;
+	--dur-slow: 0.8s;
+}
+
+/* 浅色主题（默认） */
+:root,
+:root[data-theme='light'] {
+	color-scheme: light;
+
+	--bg-base: #f2f2f7;
+	--bg-elevated: #ffffff;
+
+	--text-primary: #1d1d1f;
+	--text-secondary: #6e6e73;
+	--text-tertiary: #86868b;
+	--text-quaternary: #aeaeb2;
+
+	--accent: var(--sys-blue);
+	--accent-hover: #0077ed;
+
+	/* 玻璃材质 */
+	--glass-bg: rgba(255, 255, 255, 0.62);
+	--glass-bg-strong: rgba(255, 255, 255, 0.82);
+	--glass-bg-soft: rgba(255, 255, 255, 0.42);
+	--glass-border: rgba(255, 255, 255, 0.72);
+	--glass-edge: rgba(255, 255, 255, 0.9);
+	--glass-blur: 32px;
+	--glass-sat: 190%;
+
+	/* 阴影层次 */
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.04);
+	--shadow-md:
+		0 2px 6px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06),
+		0 16px 40px rgba(0, 0, 0, 0.05);
+	--shadow-lg:
+		0 4px 12px rgba(0, 0, 0, 0.05), 0 16px 48px rgba(0, 0, 0, 0.09),
+		0 32px 80px rgba(0, 0, 0, 0.06);
+	--shadow-accent: 0 8px 24px rgba(0, 113, 227, 0.28);
+	--shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+
+	/* 发丝分隔线 */
+	--hairline: rgba(0, 0, 0, 0.08);
+	--hairline-strong: rgba(0, 0, 0, 0.14);
+
+	/* 光晕背景 */
+	--glow-1: rgba(0, 122, 255, 0.3);
+	--glow-2: rgba(94, 92, 230, 0.26);
+	--glow-3: rgba(255, 45, 85, 0.16);
+	--glow-4: rgba(48, 176, 199, 0.2);
+	--noise-opacity: 0.22;
+	--noise-blend: overlay;
+}
+
+/* 深色主题 */
+:root[data-theme='dark'] {
+	color-scheme: dark;
+
+	--bg-base: #000000;
+	--bg-elevated: #1c1c1e;
+
+	--text-primary: #f5f5f7;
+	--text-secondary: #a1a1a6;
+	--text-tertiary: #86868b;
+	--text-quaternary: #6e6e73;
+
+	--accent: #2997ff;
+	--accent-hover: #47a8ff;
+
+	--glass-bg: rgba(28, 28, 30, 0.62);
+	--glass-bg-strong: rgba(28, 28, 30, 0.85);
+	--glass-bg-soft: rgba(28, 28, 30, 0.42);
+	--glass-border: rgba(255, 255, 255, 0.12);
+	--glass-edge: rgba(255, 255, 255, 0.16);
+	--glass-blur: 32px;
+	--glass-sat: 170%;
+
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+	--shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.45);
+	--shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55), 0 24px 64px rgba(0, 0, 0, 0.5);
+	--shadow-accent: 0 8px 28px rgba(41, 151, 255, 0.35);
+	--shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+	--hairline: rgba(255, 255, 255, 0.1);
+	--hairline-strong: rgba(255, 255, 255, 0.16);
+
+	--glow-1: rgba(10, 132, 255, 0.34);
+	--glow-2: rgba(94, 92, 230, 0.3);
+	--glow-3: rgba(255, 45, 85, 0.16);
+	--glow-4: rgba(48, 176, 199, 0.18);
+	--noise-opacity: 0.16;
+	--noise-blend: soft-light;
+}
+
+/* ---------------------------------------------------------------------
+   2. 基础重置
+   --------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	min-height: 100vh;
+	font-family: var(--font-sans);
+	font-size: 17px;
+	line-height: 1.75;
+	letter-spacing: 0.01em;
+	color: var(--text-primary);
+	background: var(--bg-base);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+	overflow-x: hidden;
+	transition:
+		background-color var(--dur-base) var(--ease-apple),
+		color var(--dur-base) var(--ease-apple);
+}
+
+/* 动态光晕背景（固定层，随主题切换） */
+body::before {
+	content: '';
+	position: fixed;
+	inset: -20%;
+	z-index: -2;
+	pointer-events: none;
+	background:
+		radial-gradient(42vw 42vw at 12% 6%, var(--glow-1), transparent 62%),
+		radial-gradient(38vw 38vw at 88% 10%, var(--glow-2), transparent 60%),
+		radial-gradient(40vw 40vw at 82% 84%, var(--glow-3), transparent 62%),
+		radial-gradient(36vw 36vw at 18% 88%, var(--glow-4), transparent 60%);
+	filter: blur(24px);
+	animation: glow-drift 32s var(--ease-apple) infinite alternate;
+	transition: background var(--dur-base) var(--ease-apple);
+}
+
+/* 细腻噪点纹理，让玻璃更接近真实材质 */
+body::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	opacity: var(--noise-opacity);
+	mix-blend-mode: var(--noise-blend);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+	background-size: 220px 220px;
+}
+
+@keyframes glow-drift {
+	0% {
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+	50% {
+		transform: translate3d(2%, -2%, 0) scale(1.06);
+	}
+	100% {
+		transform: translate3d(-2%, 2%, 0) scale(1.02);
+	}
+}
+
+::selection {
+	background: color-mix(in srgb, var(--accent) 26%, transparent);
+	color: var(--text-primary);
+}
+
+/* 滚动条（WebKit 苹果风格细条） */
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+::-webkit-scrollbar-thumb {
+	background: var(--hairline-strong);
+	border-radius: var(--radius-pill);
+	border: 3px solid transparent;
+	background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: var(--text-quaternary);
+	background-clip: content-box;
+}
+
+/* ---------------------------------------------------------------------
+   3. 排版
+   --------------------------------------------------------------------- */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0 0 0.5em 0;
+	color: var(--text-primary);
+	line-height: 1.15;
+	letter-spacing: -0.022em;
+	font-weight: 700;
+	text-wrap: balance;
+}
+
+h1 {
+	font-size: clamp(2.2rem, 5vw, 3.25rem);
+	font-weight: 800;
+	letter-spacing: -0.035em;
+}
+h2 {
+	font-size: clamp(1.6rem, 3.2vw, 2.15rem);
+	letter-spacing: -0.028em;
+}
+h3 {
+	font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+}
+h4 {
+	font-size: 1.15rem;
+}
+
+p {
+	margin: 0 0 1.25em;
+}
+
+a {
+	color: var(--accent);
+	text-decoration: none;
+	transition: color var(--dur-fast) var(--ease-apple);
+}
+a:hover {
+	color: var(--accent-hover);
+}
+
+strong,
+b {
+	font-weight: 650;
+	color: var(--text-primary);
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
+hr {
+	border: none;
+	height: 1px;
+	background: var(--hairline);
+	margin: var(--space-6) 0;
+	border-radius: 1px;
+}
+
+code {
+	font-family: var(--font-mono);
+	font-size: 0.86em;
+	padding: 0.18em 0.45em;
+	border-radius: var(--radius-xs);
+	background: var(--glass-bg-soft);
+	border: 1px solid var(--hairline);
+	color: var(--text-primary);
+	word-break: break-word;
+}
+
+pre {
+	margin: 0 0 var(--space-5);
+	padding: 1.25rem 1.4rem;
+	border-radius: var(--radius-md);
+	background: var(--glass-bg-soft);
+	border: 1px solid var(--hairline);
+	overflow-x: auto;
+	box-shadow: var(--shadow-inset);
+}
+pre > code {
+	all: unset;
+	font-family: var(--font-mono);
+	font-size: 0.85rem;
+	line-height: 1.7;
+}
+pre code {
+	background: none;
+	border: none;
+	padding: 0;
+	font-size: inherit;
+}
+
+blockquote {
+	margin: var(--space-5) 0;
+	padding: var(--space-4) var(--space-5);
+	border-radius: var(--radius-md);
+	background: var(--glass-bg-soft);
+	border: 1px solid var(--hairline);
+	border-left: 3px solid var(--accent);
+	color: var(--text-secondary);
+	font-size: 1.02em;
+}
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0 0 var(--space-5);
+	font-size: 0.95em;
+	overflow: hidden;
+	border-radius: var(--radius-md);
+}
+th,
+td {
+	padding: 0.7rem 1rem;
+	text-align: left;
+	border-bottom: 1px solid var(--hairline);
+}
+th {
+	background: var(--glass-bg-soft);
+	font-weight: 650;
+	color: var(--text-primary);
+}
+tbody tr:last-child td {
+	border-bottom: none;
+}
+
+ul,
+ol {
+	margin: 0 0 1.25em;
+	padding-left: 1.4em;
+}
+li {
+	margin-bottom: 0.45em;
+}
+li::marker {
+	color: var(--text-quaternary);
+}
+
+input,
+textarea {
+	font-family: inherit;
+	font-size: 16px;
+	color: var(--text-primary);
+	background: var(--glass-bg-soft);
+	border: 1px solid var(--hairline);
+	border-radius: var(--radius-sm);
+	padding: 0.6rem 0.9rem;
+}
+
+/* ---------------------------------------------------------------------
+   4. 正文排版（Prose）
+   Markdown 内容通过 slot 注入，需要全局规则
+   --------------------------------------------------------------------- */
+.prose {
+	color: var(--text-primary);
+	font-size: 1.03rem;
+	line-height: 1.85;
+	letter-spacing: 0.005em;
+}
+
+.prose > *:first-child {
+	margin-top: 0;
+}
+.prose > *:last-child {
+	margin-bottom: 0;
+}
+
+.prose h2 {
+	margin-block: var(--space-7) var(--space-4);
+	padding-top: var(--space-4);
+	border-top: 1px solid var(--hairline);
+	font-size: clamp(1.4rem, 2.6vw, 1.75rem);
+}
+.prose h3 {
+	margin-block: var(--space-6) var(--space-3);
+	font-size: 1.24rem;
+}
+.prose h4 {
+	margin-block: var(--space-5) var(--space-2);
+	font-size: 1.08rem;
+}
+.prose h2:first-child,
+.prose h3:first-child {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: none;
+}
+
+.prose p {
+	margin-block: 0 1.3em;
+	color: var(--text-primary);
+}
+
+.prose a {
+	color: var(--accent);
+	text-decoration: underline;
+	text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent);
+	text-underline-offset: 3px;
+	transition:
+		color var(--dur-fast) var(--ease-apple),
+		text-decoration-color var(--dur-fast) var(--ease-apple);
+}
+.prose a:hover {
+	color: var(--accent-hover);
+	text-decoration-color: var(--accent-hover);
+}
+
+.prose ul,
+.prose ol {
+	margin-block: 0 1.3em;
+	padding-left: 1.5em;
+}
+.prose li {
+	margin-bottom: 0.5em;
+}
+.prose li::marker {
+	color: var(--accent);
+	font-weight: 600;
+}
+
+.prose img {
+	margin-block: var(--space-5);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-md);
+}
+
+.prose pre {
+	background: var(--glass-bg-soft);
+}
+
+.prose blockquote {
+	background: var(--glass-bg-soft);
+}
+
+.prose table {
+	background: var(--glass-bg-soft);
+	border: 1px solid var(--hairline);
+}
+
+.prose hr {
+	margin-block: var(--space-7);
+}
+
+.prose strong {
+	font-weight: 650;
+}
+
+/*
+   宽版排版：正文卡片可铺满整列（与顶部栏同宽），但文字收窄到舒适行长。
+   必须写成全局规则——Astro scoped CSS 给 <slot /> 注入的内容打的是「调用方」
+   的 cid，scoped 下的 `.prose > *` 选择器匹配不到 Markdown 渲染出的元素。
+   代码块 / 图片 / 表格保持铺满，方便阅读与复制。
+*/
+.prose > * {
+	max-width: var(--width-reading);
+	margin-inline: auto;
+}
+.prose > pre,
+.prose > img,
+.prose > figure,
+.prose > table {
+	max-width: none;
+}
+
+/* ---------------------------------------------------------------------
+   5. 布局容器
+   --------------------------------------------------------------------- */
+.container {
+	width: 100%;
+	max-width: var(--width-content);
+	margin: 0 auto;
+	padding: 0 var(--space-5);
+}
+
+main {
+	display: block;
+}
+
+.section {
+	margin-bottom: var(--space-9);
+}
+
+.section-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-4);
+	margin-bottom: var(--space-5);
+	flex-wrap: wrap;
+}
+
+.section-title {
+	font-size: clamp(1.45rem, 2.6vw, 1.85rem);
+	margin: 0;
+	letter-spacing: -0.028em;
+}
+
+.section-title .accent-dot {
+	color: var(--accent);
+}
+
+.section-sub {
+	margin: 0.4rem 0 0;
+	color: var(--text-secondary);
+	font-size: 0.95rem;
+}
+
+/* ---------------------------------------------------------------------
+   5. 玻璃材质（核心）
+   --------------------------------------------------------------------- */
+.glass {
+	position: relative;
+	background: var(--glass-bg);
+	backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+	-webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md), var(--shadow-inset);
+	transition:
+		transform var(--dur-base) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out),
+		background-color var(--dur-base) var(--ease-apple),
+		border-color var(--dur-base) var(--ease-apple);
+}
+
+.glass-soft {
+	background: var(--glass-bg-soft);
+	backdrop-filter: blur(20px) saturate(160%);
+	-webkit-backdrop-filter: blur(20px) saturate(160%);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-sm), var(--shadow-inset);
+}
+
+/* 玻璃卡片顶部高光，模拟材质折射 */
+.glass-sheen::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	pointer-events: none;
+	background: linear-gradient(
+		160deg,
+		var(--glass-edge) 0%,
+		transparent 38%,
+		transparent 62%,
+		color-mix(in srgb, var(--glass-edge) 45%, transparent) 100%
+	);
+	opacity: 0.55;
+	mix-blend-mode: overlay;
+}
+
+/* ---------------------------------------------------------------------
+   6. 组件：按钮 / 标签 / 徽章
+   --------------------------------------------------------------------- */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 0.7rem 1.5rem;
+	border-radius: var(--radius-pill);
+	font-size: 0.95rem;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	line-height: 1.4;
+	cursor: pointer;
+	border: 1px solid transparent;
+	white-space: nowrap;
+	transition:
+		transform var(--dur-fast) var(--ease-out),
+		box-shadow var(--dur-base) var(--ease-out),
+		background-color var(--dur-fast) var(--ease-apple),
+		color var(--dur-fast) var(--ease-apple);
+}
+
+.btn:active {
+	transform: scale(0.97);
+}
+
+.btn-primary {
+	background: linear-gradient(180deg, var(--sys-blue-soft), var(--sys-blue));
+	color: #fff;
+	box-shadow: var(--shadow-accent);
+}
+.btn-primary:hover {
+	color: #fff;
+	transform: translateY(-2px);
+	box-shadow: 0 12px 32px rgba(0, 113, 227, 0.36);
+}
+
+.btn-ghost {
+	background: var(--glass-bg);
+	backdrop-filter: blur(20px) saturate(180%);
+	-webkit-backdrop-filter: blur(20px) saturate(180%);
+	border-color: var(--glass-border);
+	color: var(--text-primary);
+	box-shadow: var(--shadow-sm), var(--shadow-inset);
+}
+.btn-ghost:hover {
+	color: var(--text-primary);
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-md), var(--shadow-inset);
+}
+
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.28rem 0.75rem;
+	border-radius: var(--radius-pill);
+	font-size: 0.78rem;
+	font-weight: 550;
+	letter-spacing: 0.01em;
+	color: var(--text-secondary);
+	background: var(--glass-bg-soft);
+	border: 1px solid var(--hairline);
+}
+
+.chip-accent {
+	color: var(--accent);
+	background: color-mix(in srgb, var(--accent) 12%, transparent);
+	border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+/* ---------------------------------------------------------------------
+   7. 滚动入场动画
+   --------------------------------------------------------------------- */
+.reveal {
+	opacity: 0;
+	transform: translateY(24px);
+	transition:
+		opacity var(--dur-slow) var(--ease-out),
+		transform var(--dur-slow) var(--ease-out);
+}
+.reveal.is-visible {
+	opacity: 1;
+	transform: none;
+}
+
+/* 无 JS 环境下保证内容可见 */
+.no-js .reveal {
+	opacity: 1;
+	transform: none;
+}
+
+@media (scripting: none) {
+	.reveal {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+	.reveal {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* ---------------------------------------------------------------------
+   8. 工具类
+   --------------------------------------------------------------------- */
+.sr-only {
+	border: 0;
+	padding: 0;
+	margin: 0;
+	position: absolute !important;
+	height: 1px;
+	width: 1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.gradient-text {
+	background: linear-gradient(120deg, var(--sys-blue) 0%, var(--sys-purple) 48%, var(--sys-pink) 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	-webkit-text-fill-color: transparent;
+}
+
+@media (max-width: 720px) {
+	body {
+		font-size: 16px;
+	}
+	.container {
+		padding: 0 var(--space-4);
+	}
+	.section {
+		margin-bottom: var(--space-7);
+	}
+}
