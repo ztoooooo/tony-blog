@@ -9,6 +9,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "new-post": "node scripts/new-post.mjs",
+    "release": "node scripts/release.mjs",
     "deploy": "astro build && wrangler deploy",
     "astro": "astro"
   },

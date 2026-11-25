@@ -26,9 +26,28 @@ npm run deploy   # 本地构建并直接部署到 Cloudflare（需本机 wrangle
 
 ## 写内容
 
-### 博客文章
+### 标准发布流程（以后照此操作，不要手工改 frontmatter）
 
-在 `src/content/blog/` 下新建 Markdown 文件，文件名即网址（建议英文短横线），头部 frontmatter：
+发布一篇博客固定两步，转换与提交信息都由脚本生成，无需手动整理头部字段：
+
+```bash
+# 1) 导入并标准化：把任意来源的 Markdown 转成符合规范的文章文件
+npm run new-post -- "C:/path/to/源文件.md" --cover "C:/path/to/封面.png"
+#   常用参数：--slug 自定义网址  --date 2026-11-25  --title "标题"
+#            --description "摘要"  --dry-run 先预览不写盘  --force 覆盖同名
+
+# 2) 一键发布：本地构建 → 自动生成提交信息 → 推送 → 等 CI → 验证线上 200
+npm run release
+#   可选：--message "自定义提交说明"  --no-verify 跳过线上校验
+```
+
+`new-post` 会自动完成：剥离源文件里不被识别的头部字段、生成规范的 `title/description/pubDate/heroImage`、删除与标题重复的 H1、清理行尾硬换行、统一 LF、把封面复制进 `src/assets/covers/`。封面可省略（`heroImage` 是可选字段）。
+
+> 软件库内容不经过 `new-post`，仍按下一节直接编辑 `src/content/software/*.md`，再用 `npm run release` 发布。
+
+### 博客文章（字段参考）
+
+文章文件位于 `src/content/blog/`，文件名即网址（英文短横线）。正常情况下用上面的 `new-post` 生成即可，frontmatter 字段含义如下：
 
 ```yaml
 ---
@@ -78,7 +97,7 @@ heroImage: ../../assets/covers/cover-edge.png   # 可选封面
 ```text
 ├── .github/workflows/deploy.yml   # 自动部署工作流
 ├── public/                        # 静态资源（favicon 等）
-├── scripts/                       # 本地宽度回归 / 截图的 CDP 探针
+├── scripts/                       # new-post 导入 / release 一键发布 / CDP 探针与截图
 ├── src/
 │   ├── assets/covers/             # 文章封面
 │   ├── components/                # 页头、页脚、卡片等组件
