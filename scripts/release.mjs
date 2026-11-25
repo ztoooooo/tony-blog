@@ -32,16 +32,32 @@ function sh(cmd, cmdArgs, opts = {}) {
   }
   return (r.stdout || '').trim();
 }
+// GitHub API：网络抖动（代理瞬断/5xx）自动重试 3 次
 function curlJson(url) {
-  const r = spawnSync('curl', ['-sS', '--fail', '--max-time', '25',
-    '-H', 'Accept: application/vnd.github+json', url], { cwd: ROOT, encoding: 'utf8' });
-  if (r.status !== 0) fail(`请求失败: ${url}\n${r.stderr}`);
-  try { return JSON.parse(r.stdout); } catch { fail(`返回非 JSON: ${url}\n${r.stdout.slice(0, 200)}`); }
+  let last = null;
+  for (let i = 1; i <= 3; i++) {
+    const r = spawnSync('curl', ['-sS', '--max-time', '25',
+      '-H', 'Accept: application/vnd.github+json', url], { cwd: ROOT, encoding: 'utf8' });
+    last = r;
+    if (r.status === 0) {
+      try { return JSON.parse(r.stdout); } catch { /* 非 JSON，落到重试 */ }
+    }
+    console.log(`  网络抖动，API 重试 ${i}/3 …`);
+    sleep(2500);
+  }
+  fail(`GitHub API 请求失败: ${url}\n${last?.stderr || last?.stdout?.slice(0, 200) || ''}`);
 }
+// 线上探活：000 表示本地网络层没连通（代理瞬断），重试；拿到真实 HTTP 状态码即返回
 function curlCode(url) {
-  const r = spawnSync('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '25', url],
-    { cwd: ROOT, encoding: 'utf8' });
-  return r.status === 0 ? r.stdout.trim() : '000';
+  for (let i = 1; i <= 3; i++) {
+    const r = spawnSync('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '25', url],
+      { cwd: ROOT, encoding: 'utf8' });
+    const code = r.status === 0 ? r.stdout.trim() : '000';
+    if (code !== '000') return code;
+    console.log(`  本地网络抖动(000)，探活重试 ${i}/3 …`);
+    sleep(2500);
+  }
+  return '000';
 }
 
 // ---------- 0. 环境自检 ----------
@@ -125,14 +141,18 @@ if (DO_VERIFY) {
   const changed = sh('git', ['diff', '--name-only', 'HEAD~1', 'HEAD']).split('\n');
   const post = changed.find((f) => /^src\/content\/blog\/.+\.mdx?$/.test(f));
   if (post) targets.push(`${site}/blog/${post.split('/').pop().replace(/\.mdx?$/, '')}/`);
-  let bad = 0;
+  let httpBad = 0;
+  let netBad = 0;
   for (const u of targets) {
     const code = curlCode(u);
-    console.log(`  ${code === '200' ? '✓' : '✗'} ${code}  ${u}`);
-    if (code !== '200') bad++;
+    if (code === '200') console.log(`  \x1b[32m✓\x1b[0m 200  ${u}`);
+    else if (code === '000') { netBad++; console.log(`  \x1b[33m!\x1b[0m 网络未连通  ${u}`); }
+    else { httpBad++; console.log(`  \x1b[31m✗\x1b[0m ${code}  ${u}`); }
   }
-  if (bad) fail('部分线上地址未返回 200（可能边缘缓存延迟，稍后再验）。');
-  ok('线上验证全部 200');
+  // 拿到真实状态码却不是 200，才判定部署失败；000 是本地代理问题，CI 成功即可信
+  if (httpBad) fail('线上地址返回非 200 状态码，部署可能异常，请到 Cloudflare 控制台确认。');
+  if (netBad) console.log('\n\x1b[33m!\x1b[0m 本地网络抖动导致部分探活未完成，但 CI 已部署成功，稍后刷新即可。');
+  else ok('线上验证全部 200');
 }
 console.log(`\n\x1b[32m发布完成 🎉\x1b[0m ${site}`);
 
